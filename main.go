@@ -3,9 +3,11 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io"
+	"os"
 )
 
-var tableSize uint = 333331
+var tableSize uint = 3333331
 
 type hashNode struct {
 	key, value string
@@ -13,11 +15,18 @@ type hashNode struct {
 }
 
 type hashTable struct {
-	nodes []hashNode
+	nodes    []hashNode
+	capacity uint
+}
+
+func (t *hashTable) String() string {
+	return fmt.Sprint(t.nodes)
 }
 
 func (t *hashTable) create(s uint) {
-	t.nodes = make([]hashNode, s)
+	// hash value zero means empty bucket
+	t.nodes = make([]hashNode, s+1)
+	t.capacity = s
 }
 
 func (t *hashTable) dib(index uint) (distance uint) {
@@ -36,18 +45,9 @@ func (t *hashTable) incPos(index uint) (pos uint) {
 	return pos
 }
 
-func (t *hashTable) decpos(index uint) (pos uint) {
-	pos = index - 1
-	if pos == 0 {
-		pos = uint(len(t.nodes) - 1)
-	}
-	return pos
-}
-
-//TODO: what if table is full
 func (t *hashTable) insert(key, value string) {
 	hashValue := hash(key)
-	hashValue = hashValue%tableSize + 1
+	hashValue = hashValue%t.capacity + 1
 
 	initPos := hashValue
 	newNode := hashNode{key, value, hashValue}
@@ -75,7 +75,7 @@ func (t *hashTable) remove(key string) (err error) {
 			lastPos = t.incPos(lastPos)
 		}
 
-		for pos := initPos; pos != lastPos-1; pos = t.incPos(pos) {
+		for pos := initPos; pos != lastPos; pos = t.incPos(pos) {
 			t.nodes[pos] = t.nodes[pos+1]
 		}
 	} else {
@@ -87,7 +87,7 @@ func (t *hashTable) remove(key string) (err error) {
 
 func (t *hashTable) queryIndex(key string) (err error, index uint) {
 	hashValue := hash(key)
-	hashValue = hashValue%tableSize + 1
+	hashValue = hashValue%t.capacity + 1
 
 	initPos := hashValue
 	pos := initPos
@@ -126,14 +126,52 @@ func hash(key string) (hashValue uint) {
 	return hashValue
 }
 
+func check(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
+
 func main() {
 	table := new(hashTable)
-	table.create(tableSize + 1)
+	table.create(tableSize)
 
-	table.insert("foo", "bar")
-	table.insert("bar", "foo")
-	table.insert("foobar", "foo")
-	fmt.Println(table.query("foo"))
-	table.remove("foo")
-	fmt.Println(table.query("foo"))
+	f, err := os.Open("in")
+	check(err)
+	defer func() {
+		err := f.Close()
+		check(err)
+	}()
+
+	for {
+		var op int
+		var key string
+		var value string
+		_, err := fmt.Fscan(f, &op, &key)
+		if err != nil {
+			if err == io.EOF {
+				return
+			} else {
+				panic(err)
+			}
+		}
+
+		switch op {
+		case 0:
+			fmt.Fscan(f, &value)
+			table.insert(key, value)
+		case 1:
+			err := table.remove(key)
+			if err != nil {
+				fmt.Printf("cannot delete %s\n", key)
+			}
+		case 2:
+			err, value := table.query(key)
+			if err != nil {
+				fmt.Printf("cannot find %s\n", key)
+			} else {
+				fmt.Println(value)
+			}
+		}
+	}
 }
