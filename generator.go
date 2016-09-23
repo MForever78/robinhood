@@ -40,6 +40,9 @@ func main() {
 	for i := 0; i < n; i++ {
 		op := r.Intn(3)
 		index := r.Intn(len(dictionary))
+		// 0: insert
+		// 1: remove
+		// 2: query
 		if op == 0 {
 			valueIndex := r.Intn(len(dictionary))
 			fmt.Printf("%d %s %s\n", op, dictionary[index], dictionary[valueIndex])
