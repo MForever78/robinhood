@@ -2,9 +2,11 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"os"
+	"runtime/pprof"
 )
 
 var tableSize uint = 3333331
@@ -132,7 +134,16 @@ func check(e error) {
 	}
 }
 
+var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+
 func main() {
+	flag.Parse()
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		check(err)
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
 	table := new(hashTable)
 	table.create(tableSize)
 
@@ -166,7 +177,7 @@ func main() {
 				fmt.Printf("cannot delete %s\n", key)
 			}
 		case 2:
-			err, value := table.query(key)
+			err, _ := table.query(key)
 			if err != nil {
 				fmt.Printf("cannot find %s\n", key)
 			} else {
