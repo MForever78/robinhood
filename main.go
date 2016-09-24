@@ -48,6 +48,12 @@ func (t *hashTable) incPos(index uint) (pos uint) {
 }
 
 func (t *hashTable) insert(key, value string) {
+	err, index := t.queryIndex(key)
+	if err == nil {
+		t.nodes[index].value = value
+		return
+	}
+
 	hashValue := hash(key)
 	hashValue = hashValue%t.capacity + 1
 
@@ -68,20 +74,17 @@ func (t *hashTable) insert(key, value string) {
 }
 
 func (t *hashTable) remove(key string) (err error) {
-	ok, initPos := t.queryIndex(key)
+	err, initPos := t.queryIndex(key)
 
-	if ok == nil {
-		err = nil
+	if err == nil {
 		lastPos := initPos + 1
 		for t.nodes[lastPos].hashValue != 0 && t.dib(lastPos) != 0 {
 			lastPos = t.incPos(lastPos)
 		}
 
 		for pos := initPos; pos != lastPos; pos = t.incPos(pos) {
-			t.nodes[pos] = t.nodes[pos+1]
+			t.nodes[pos] = t.nodes[t.incPos(pos)]
 		}
-	} else {
-		err = ok
 	}
 
 	return err
@@ -93,27 +96,24 @@ func (t *hashTable) queryIndex(key string) (err error, index uint) {
 
 	initPos := hashValue
 	pos := initPos
-	for t.nodes[pos].hashValue != 0 && t.dib(pos) > pos-initPos {
+	for t.nodes[pos].hashValue != 0 && t.dib(pos) >= pos-initPos {
+		if t.nodes[pos].key == key {
+			index = pos
+			err = nil
+			return err, index
+		}
 		pos = t.incPos(pos)
 	}
 
-	if t.nodes[pos].key == key {
-		index = pos
-		err = nil
-	} else {
-		err = errors.New("cannot find key")
-	}
+	err = errors.New("cannot find key")
 	return err, index
 }
 
 func (t *hashTable) query(key string) (err error, value string) {
-	ok, pos := t.queryIndex(key)
+	err, pos := t.queryIndex(key)
 
-	if ok == nil {
+	if err == nil {
 		value = t.nodes[pos].value
-		err = nil
-	} else {
-		err = errors.New("cannot find key")
 	}
 
 	return err, value
@@ -171,10 +171,13 @@ func main() {
 		case 0:
 			fmt.Fscan(f, &value)
 			table.insert(key, value)
+			fmt.Println("inserted", key)
 		case 1:
 			err := table.remove(key)
 			if err != nil {
 				fmt.Printf("cannot delete %s\n", key)
+			} else {
+				fmt.Println("deleted", key)
 			}
 		case 2:
 			err, value := table.query(key)
