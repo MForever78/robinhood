@@ -177,7 +177,7 @@ func main() {
 				fmt.Printf("cannot delete %s\n", key)
 			}
 		case 2:
-			err, _ := table.query(key)
+			err, value := table.query(key)
 			if err != nil {
 				fmt.Printf("cannot find %s\n", key)
 			} else {
