@@ -8,37 +8,37 @@ A detailed introduction can be found [here](https://code.mforever78.com/security
 
 1. Generate queries from dictionary.
 
-```bash
-" use generator to generate proper inputs.
-" the three number represent inserts, deletes, quries respectively.
-cd generator
-go run main.go > ../in
-330000 2000 300000
-```
+  ```bash
+  " use generator to generate proper inputs.
+  " the three number represent inserts, deletes, quries respectively.
+  cd generator
+  go run main.go > ../in
+  330000 2000 300000
+  ```
 
 2. Run robinhood hashmap.
 
-```bash
-cd robinhood
-cp ../in .
-/usr/bin/time go run main.go
-```
+  ```bash
+  cd robinhood
+  cp ../in .
+  /usr/bin/time go run main.go
+  ```
 
 3. Run linear hashmap.
 
-```bash
-cd linear
-cp ../in .
-/usr/bin/time go run main.go
-```
+  ```bash
+  cd linear
+  cp ../in .
+  /usr/bin/time go run main.go
+  ```
 
 4. (optional) Run std hashmap.
 
-```bash
-cd stdmap
-cp ../in .
-/usr/bin/time go run main.go
-```
+  ```bash
+  cd stdmap
+  cp ../in .
+  /usr/bin/time go run main.go
+  ```
 
 ### Example test result
 
