@@ -8,7 +8,7 @@ import (
 	"runtime/pprof"
 )
 
-var tableSize uint = 333331
+var tableSize uint = 41667
 var table map[string]string
 
 func check(e error) {
