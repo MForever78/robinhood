@@ -9,7 +9,7 @@ import (
 	"runtime/pprof"
 )
 
-var tableSize uint = 3333331
+var tableSize uint = 333331
 
 type hashNode struct {
 	key, value string
